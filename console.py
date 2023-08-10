@@ -135,10 +135,9 @@ class HBNBCommand(cmd.Cmd):
             else:
                 print('** no instance found **')
 
-
     def default(self, arg):
-        """ To retrieve all instances of a class by 
-            using: <class name>.all() """
+        """ To retrieve all instances of a
+            class by using:<class name>.all() """
         args = arg.split('.', 1)
         if args[0] in HBNBCommand.classes.keys():
             if args[1].strip('()') == 'all':
@@ -159,7 +158,7 @@ class HBNBCommand(cmd.Cmd):
                     arg1 = args[1].split('(')[1].strip(')').split(', ', 1)[0]
                     attr_dict = ast.literal_eval(args[1].split('(')[1]
                                                  .strip(')').split(', ', 1)[1])
-                    
+
                     for key, value in attr_dict.items():
                         self.do_update(arg0+' '+arg1+' '+key+' '+str(value))
                 elif ', ' in args[1] and\
@@ -184,7 +183,7 @@ class HBNBCommand(cmd.Cmd):
 
     @staticmethod
     def do_count(arg):
-        """ Retrieve the number of instances of 
+        """ Retrieve the number of instances of
             a class: <class name>.count() """
         if not arg:
             print("** class name missing **")
@@ -196,6 +195,7 @@ class HBNBCommand(cmd.Cmd):
                 if arg == key.split('.')[0]:
                     counter += 1
             print(counter)
+
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
