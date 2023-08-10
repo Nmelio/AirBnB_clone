@@ -1,5 +1,9 @@
 #!/usr/bin/python3
-""" Class BaseModel """
+"""This file contains the implementation of the BaseModel Class."""
+
+
+import uuid
+import models
 from datetime import datetime
 from uuid import uuid4
 import models
@@ -11,42 +15,37 @@ class BaseModel:
     def __init__(self, *args, **kwargs):
         """ Public instance attributes """
         if kwargs:
-            for key, value in kwargs.items():
-                if key == '__class__':
-                    continue
-                elif key == 'updated_at':
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
-                elif key == 'created_at':
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
-                if 'id' not in kwargs.keys():
-                    self.id = str(uuid4())
-                if 'created_at' not in kwargs.keys():
-                    self.created_at = datetime.now()
-                if 'updated_at' not in kwargs.keys():
-                    self.updated_at = datetime.now()
-                setattr(self, key, value)
-        
+            for key, item in kwargs.items():
+                if key != '__class__':
+                    if key == 'created_at' or key == 'updated_at':
+                        timestamp_fmt = '%Y-%m-%dT%H:%M:%S.%f'
+                        setattr(self, key, datetime.strptime(
+                            item, timestamp_fmt))
+                    elif key == 'id':
+                        setattr(self, key, str(item))
+                    else:
+                        setattr(self, key, item)
+
         else:
-            self.id = str(uuid4())
-            self.created_at = datetime.now()
-            self.updated_at = self.created_at
+            now_timestamp = datetime.now()
+            self.id = str(uuid.uuid4())
+            self.created_at = now_timestamp
+            self.updated_at = now_timestamp
             models.storage.new(self)
 
     def __str__(self):
-        """ Print: [<class name>] (<self.id>) <self.__dict__> """
-        return('[' + type(self).__name__ + '] (' + str(self.id) +
-               ') ' + str(self.__dict__))
+        s_rep = "[{}] ({}) {}".format(
+            type(self).__name__, self.id, self.__dict__)
+        return s_rep
 
     def save(self):
-        """ Updates the public instance attribute updated_at with the current datetime """
+        """ Updates the public instance attribute
+        updated_at with the current datetime """
         self.updated_at = datetime.now()
         models.storage.save()
 
     def to_dict(self):
-        """ Returns a dictionary containing all keys/values of __dict__ of the instance """
-        rtn_dic = self.__dict__.copy()
-        rtn_dic['__class__'] = self.__class__.__name__
-        rtn_dic['created_at'] = self.created_at.isoformat()
-        rtn_dic['updated_at'] = self.updated_at.isoformat()
-        return rtn_dic
-    
+        dict_snapshot = self.__dict__.copy()
+        dict_snapshot['created_at'] = self.created_at.isoformat()
+        dict_snapshot['updated_at'] = self.updated_at.isoformat()
+        return dict_snapshot
