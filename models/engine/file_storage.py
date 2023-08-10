@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import json
+
 from models.base_model import BaseModel
 from models.amenity_model import Amenity
 from models.city_model import City
