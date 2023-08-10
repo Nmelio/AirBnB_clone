@@ -1,25 +1,35 @@
 #!/usr/bin/python3
-""" Entry point of the command interpreter """
+""" Entry point of the command interpreter. """
+
+
 import cmd
 import sys
 import json
 import os
-from models import storage
+import models
+
 from models.base_model import BaseModel
-from models.user import User
-from models.place import Place
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.review import Review
+from models.amenity_model import Amenity
+from models.city_model import City
+from models.place_model import Place
+from models.review_model import Review
+from models.state_model import State
+from models.user_model import User
 
 
 class HBNBCommand(cmd.Cmd):
     """ Entry point of the command interpreter """
+
     prompt = '(hbnb) '
-    classes = {'BaseModel': BaseModel, 'User': User, 'City': City,
-               'Place': Place, 'Amenity': Amenity, 'Review': Review,
-               'State': State}
+    classes = {
+        'BaseModel': BaseModel,
+        'Amenity': Amenity,
+        'City': City,
+        'Place': Place,
+        'Review': Review,
+        'State': State,
+        'User': User,
+    }
 
     def do_quit(self, arg):
         """ Exit the program """
@@ -62,8 +72,8 @@ class HBNBCommand(cmd.Cmd):
             return
         elif len(arg.split()) > 1:
             x = arg.split()[0] + '.' + arg.split()[1]
-            if x in storage.all():
-                y = storage.all()
+            if x in models.storage.all():
+                y = models.storage.all()
                 print(y[x])
             else:
                 print('** no instance found **')
@@ -87,9 +97,9 @@ class HBNBCommand(cmd.Cmd):
             return
         if len(arg_list) > 1:
             key = arg_list[0] + '.' + arg_list[1]
-            if key in storage.all():
-                storage.all().pop(key)
-                storage.save()
+            if key in models.storage.all():
+                models.storage.all().pop(key)
+                models.storage.save()
             else:
                 print('** no instance found **')
                 return
@@ -98,11 +108,13 @@ class HBNBCommand(cmd.Cmd):
         """ Prints all string representation of
             all instances based or not on the class name """
         if len(arg) == 0:
-            print([str(a) for a in storage.all().values()])
+            print([str(a) for a in models.storage.all().values()])
         elif arg not in self.classes:
             print("** class doesn't exist **")
         else:
-            print([str(a) for b, a in storage.all().items() if arg in b])
+            print(
+                [str(a) for b, a in models.storage.all().items() if arg in b]
+            )
 
     def do_update(self, arg):
         """ Updates an instance based on the class
@@ -120,16 +132,16 @@ class HBNBCommand(cmd.Cmd):
             return
         else:
             key = arg[0] + '.' + arg[1]
-            if key in storage.all():
+            if key in models.storage.all():
                 if len(arg) > 2:
                     if len(arg) == 3:
                         print('** value missing **')
                     else:
                         setattr(
-                            storage.all()[key],
+                            models.storage.all()[key],
                             arg[2],
                             arg[3][1:-1])
-                        storage.all()[key].save()
+                        models.storage.all()[key].save()
                 else:
                     print('** attribute name missing **')
             else:
