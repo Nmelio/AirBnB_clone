@@ -43,7 +43,7 @@ class BaseModel:
         models.storage.save()
 
     def to_dict(self):
-        """ Returns a dictionary containing 
+        """ Returns a dictionary containing
         all keys/values of __dict__ of the instance """
         dict_snapshot = self.__dict__.copy()
         dict_snapshot['__class__'] = self.__class__.__name__
