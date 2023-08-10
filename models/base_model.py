@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 """This file contains the implementation of the BaseModel Class."""
 
-
-import uuid
 import models
 from datetime import datetime
 from uuid import uuid4
@@ -28,7 +26,7 @@ class BaseModel:
 
         else:
             now_timestamp = datetime.now()
-            self.id = str(uuid.uuid4())
+            self.id = str(uuid4())
             self.created_at = now_timestamp
             self.updated_at = now_timestamp
             models.storage.new(self)
