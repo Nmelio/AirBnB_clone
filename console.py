@@ -1,32 +1,25 @@
 #!/usr/bin/python3
-""" Entry point of the command interpreter. """
-
-
+""" Entry point of the command interpreter """
 import cmd
-
-import models
+import sys
+import json
+import os
+from models import storage
 from models.base_model import BaseModel
-from models.amenity_model import Amenity
-from models.city_model import City
-from models.place_model import Place
-from models.review_model import Review
-from models.state_model import State
-from models.user_model import User
+from models.user import User
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
     """ Entry point of the command interpreter """
-
     prompt = '(hbnb) '
-    classes = {
-        'BaseModel': BaseModel,
-        'Amenity': Amenity,
-        'City': City,
-        'Place': Place,
-        'Review': Review,
-        'State': State,
-        'User': User,
-    }
+    classes = {'BaseModel': BaseModel, 'User': User, 'City': City,
+               'Place': Place, 'Amenity': Amenity, 'Review': Review,
+               'State': State}
 
     def do_quit(self, arg):
         """ Exit the program """
@@ -69,8 +62,8 @@ class HBNBCommand(cmd.Cmd):
             return
         elif len(arg.split()) > 1:
             x = arg.split()[0] + '.' + arg.split()[1]
-            if x in models.storage.all():
-                y = models.storage.all()
+            if x in storage.all():
+                y = storage.all()
                 print(y[x])
             else:
                 print('** no instance found **')
@@ -94,9 +87,9 @@ class HBNBCommand(cmd.Cmd):
             return
         if len(arg_list) > 1:
             key = arg_list[0] + '.' + arg_list[1]
-            if key in models.storage.all():
-                models.storage.all().pop(key)
-                models.storage.save()
+            if key in storage.all():
+                storage.all().pop(key)
+                storage.save()
             else:
                 print('** no instance found **')
                 return
@@ -105,13 +98,11 @@ class HBNBCommand(cmd.Cmd):
         """ Prints all string representation of
             all instances based or not on the class name """
         if len(arg) == 0:
-            print([str(a) for a in models.storage.all().values()])
+            print([str(a) for a in storage.all().values()])
         elif arg not in self.classes:
             print("** class doesn't exist **")
         else:
-            print(
-                [str(a) for b, a in models.storage.all().items() if arg in b]
-            )
+            print([str(a) for b, a in storage.all().items() if arg in b])
 
     def do_update(self, arg):
         """ Updates an instance based on the class
@@ -129,21 +120,82 @@ class HBNBCommand(cmd.Cmd):
             return
         else:
             key = arg[0] + '.' + arg[1]
-            if key in models.storage.all():
+            if key in storage.all():
                 if len(arg) > 2:
                     if len(arg) == 3:
                         print('** value missing **')
                     else:
                         setattr(
-                            models.storage.all()[key],
+                            storage.all()[key],
                             arg[2],
                             arg[3][1:-1])
-                        models.storage.all()[key].save()
+                        storage.all()[key].save()
                 else:
                     print('** attribute name missing **')
             else:
                 print('** no instance found **')
 
+
+    def default(self, arg):
+        """ To retrieve all instances of a class by 
+            using: <class name>.all() """
+        args = arg.split('.', 1)
+        if args[0] in HBNBCommand.classes.keys():
+            if args[1].strip('()') == 'all':
+                self.do_all(args[0])
+            elif args[1].strip('()') == 'count':
+                self.do_count(args[0])
+            elif args[1].split('(')[0] == 'show':
+                self.do_show(args[0]+' '+args[1].split('(')[1].strip(')'))
+            elif args[1].split('(')[0] == 'destroy':
+                self.do_destroy(args[0]+' '+args[1].split('(')[1].strip(')'))
+            elif args[1].split('(')[0] == 'update':
+                arg0 = args[0]
+                if ', ' not in args[1]:
+                    arg1 = args[1].split('(')[1].strip(')')
+                    self.do_update(arg0+' '+arg1)
+                elif ', ' in args[1] and\
+                     '{' in args[1] and ':' in args[1]:
+                    arg1 = args[1].split('(')[1].strip(')').split(', ', 1)[0]
+                    attr_dict = ast.literal_eval(args[1].split('(')[1]
+                                                 .strip(')').split(', ', 1)[1])
+                    
+                    for key, value in attr_dict.items():
+                        self.do_update(arg0+' '+arg1+' '+key+' '+str(value))
+                elif ', ' in args[1] and\
+                     len(args[1].split('(')[1].strip(')').split(', ')) == 2:
+                    arg1 = args[1].split('(')[1].strip(')').split(', ')[0]
+                    arg2 = args[1].split('(')[1].strip(')').split(', ')[1]
+                    self.do_update(arg0+' '+arg1+' '+arg2)
+                elif ', ' in args[1] and\
+                     len(args[1].split('(')[1].strip(')').split(', ')) >= 3:
+                    print(args[1])
+                    arg1 = args[1].split('(')[1].strip(')').split(', ')[0]
+                    print(arg1)
+                    arg2 = args[1].split('(')[1].strip(')').split(', ')[1]
+                    print(arg2)
+                    arg3 = args[1].split('(')[1].strip(')').split(', ')[2]
+                    print(arg3)
+                    self.do_update(arg0+' '+arg1+' '+arg2+' '+arg3)
+            else:
+                print('*** Unknown syntax: {}'.format(arg))
+        else:
+            print("** class doesn't exist **")
+
+    @staticmethod
+    def do_count(arg):
+        """ Retrieve the number of instances of 
+            a class: <class name>.count() """
+        if not arg:
+            print("** class name missing **")
+        elif arg not in HBNBCommand.classes.keys():
+            print("** class doesn't exist **")
+        else:
+            counter = 0
+            for key, obj in storage.all().values():
+                if arg == key.split('.')[0]:
+                    counter += 1
+            print(counter)
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
