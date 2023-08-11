@@ -9,12 +9,12 @@ import os
 import models
 
 from models.base_model import BaseModel
-from models.amenity_model import Amenity
-from models.city_model import City
-from models.place_model import Place
-from models.review_model import Review
-from models.state_model import State
-from models.user_model import User
+from models.amenity import Amenity
+from models.city import City
+from models.place import Place
+from models.review import Review
+from models.state import State
+from models.user import User
 
 
 class HBNBCommand(cmd.Cmd):
